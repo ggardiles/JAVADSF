@@ -1,0 +1,2 @@
+En esta practica he desarrollado una versión simple de un sistema de ficheros distribuidos
+utilizando Java RMI tal y como se especifica en la Guia 2016 de la practica.

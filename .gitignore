@@ -1,0 +1,7 @@
+.idea
+autores
+**/*.class
+*.out
+servidor/DFSDir
+*.tar.gz
+
