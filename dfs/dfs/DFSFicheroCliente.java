@@ -9,6 +9,7 @@ import java.rmi.*;
 public class DFSFicheroCliente  {
     private final DFSCliente dfsCliente;
     private final DFSFicheroServ dfsFicheroServ;
+    private final DFSServicio dfsServicio;
     private final String nom;
     private final String modo;
     private long pos;
@@ -24,8 +25,8 @@ public class DFSFicheroCliente  {
         //this.callback = new DFSFicheroCallbackImpl(this);
         //this.fileInfo = dfs.generateFile(this.callback, nom, modo);
 
-        DFSServicio dfsServicio = dfsCliente.getDfsServicio();
-        this.dfsFicheroServ = dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
+        this.dfsServicio = dfsCliente.getDfsServicio();
+        this.dfsFicheroServ = this.dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
     }
     public int read(byte[] b) throws RemoteException, IOException {
         if(!isOpen()) {
@@ -39,13 +40,14 @@ public class DFSFicheroCliente  {
             byte[] cacheRead = new byte[tamBloque];
             cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
             if(cacheRead == null) { // EOF
+                System.out.println("READ EOF");
                 break;
             }
             nleidos += tamBloque;
             System.arraycopy(cacheRead, 0, b, tamBloque * i, cacheRead.length);
         }
-        System.out.println("Bytes leidos: " + nleidos);
         pos += nleidos;
+        System.out.println("READ: Bytes leidos: "+nleidos+ " pos="+pos);
         return (nleidos>0)?nleidos:-1;
     }
     public void write(byte[] b) throws RemoteException, IOException {
@@ -59,13 +61,18 @@ public class DFSFicheroCliente  {
             byte[] buffer = new byte[tamBloque];
             dfsFicheroServ.write(b, pos);
         }
-        System.out.println("Bytes escritos: "+b.length);
         pos += b.length;
+        System.out.println("WRITE: Bytes escritos: "+b.length+ " pos="+pos);
     }
+
     public void seek(long p) throws RemoteException, IOException {
+        if(!this.isOpen) {
+            throw new IOException("The file has not been opened");
+        }
+
         dfsFicheroServ.seek(p);
         pos = p;
-        System.out.println("Nueva posicion: "+p);
+        System.out.println("SEEK: Nueva posicion: "+p);
 
     }
     public void close() throws RemoteException, IOException {
@@ -73,8 +80,9 @@ public class DFSFicheroCliente  {
             throw new IOException("The file has not been opened");
         }
         dfsFicheroServ.close();
+        dfsServicio.removeFromHashmap(nom);
         setOpen(false);
-        System.out.println("File Closed");
+        System.out.println("CLOSE: File Closed");
     }
 
     private boolean isOpen() {

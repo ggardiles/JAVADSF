@@ -12,4 +12,5 @@ public interface DFSServicio extends Remote {
     DFSFicheroServ getOrCreateDSFFicheroServ(String nom, String modo)
             throws RemoteException, IOException;
 
+    void removeFromHashmap(String nom) throws RemoteException;
 }       

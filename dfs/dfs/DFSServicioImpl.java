@@ -34,4 +34,8 @@ public class DFSServicioImpl extends UnicastRemoteObject implements DFSServicio 
         return dfsFicheroServ;
     }
 
+    public void removeFromHashmap(String nom) throws RemoteException{
+        this.ficheroServHashMap.remove(nom);
+    }
+
 }
