@@ -23,7 +23,9 @@ public class DFSFicheroCliente  {
         this.setOpen(true);
         this.pos = 0L;
         //this.callback = new DFSFicheroCallbackImpl(this);
-        //this.fileInfo = dfs.generateFile(this.callback, nom, modo);
+
+        // Crear cache si no existe
+        dfs.createCacheOrIgnore(nom, modo);
 
         this.dfsServicio = dfsCliente.getDfsServicio();
         this.dfsFicheroServ = this.dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
@@ -38,7 +40,14 @@ public class DFSFicheroCliente  {
 
         for (int i = 0; i * tamBloque < b.length; i++) {
             byte[] cacheRead = new byte[tamBloque];
-            cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
+
+            if (dfsCliente.isInCache(nom, pos)){
+                cacheRead = dfsCliente.getFromCache(nom, pos);
+            }else{
+                cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
+                dfsCliente.saveInCache(nom, pos, cacheRead,false);
+            }
+
             if(cacheRead == null) { // EOF
                 System.out.println("READ EOF");
                 break;
