@@ -13,6 +13,7 @@ public class DFSFicheroCliente  {
     private final DFSServicio dfsServicio;
     private final String nom;
     private final String modo;
+    private final FicheroInfo ficheroInfo;
     private long pos;
     private boolean isOpen;
 
@@ -29,7 +30,8 @@ public class DFSFicheroCliente  {
         dfs.createCacheOrIgnore(nom, modo);
 
         this.dfsServicio = dfsCliente.getDfsServicio();
-        this.dfsFicheroServ = this.dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
+        this.ficheroInfo = this.dfsServicio.getOrCreateFicheroInfo(nom, modo);
+        this.dfsFicheroServ = this.ficheroInfo.getDfsFile();
     }
     public int read(byte[] b) throws RemoteException, IOException {
         if(!isOpen()) {
@@ -42,10 +44,13 @@ public class DFSFicheroCliente  {
         for (int i = 0; i * tamBloque < b.length; i++) {
             byte[] cacheRead = new byte[tamBloque];
 
-            if (dfsCliente.isInCache(nom, tamBloque * i)){ // En cache
+            if (dfsCliente.isInCache(nom, tamBloque * i)
+                    && dfsCliente.isCacheValid(nom, ficheroInfo.getLastModification())){ // En cache
+                System.out.println("FICHERO CLIENTE: Getting from cache pos="+tamBloque*i);
                 cacheRead = dfsCliente.getFromCache(nom, tamBloque * i);
             }else{ // No en cache -> Leer de fichero y guardar en cache
-                cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
+                System.out.println("FICHERO CLIENTE: Getting from FILE pos="+tamBloque*i);
+                cacheRead = this.dfsFicheroServ.read(cacheRead, tamBloque*i);
                 List<Bloque> bloquesPendientes =
                         dfsCliente.saveInCache(nom, tamBloque * i, cacheRead, false);
                 for(Bloque bloque: bloquesPendientes){
@@ -92,7 +97,6 @@ public class DFSFicheroCliente  {
             throw new IOException("The file has not been opened");
         }
 
-        dfsFicheroServ.seek(p);
         pos = p;
         System.out.println("SEEK: Nueva posicion: "+p);
 

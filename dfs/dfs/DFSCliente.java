@@ -42,14 +42,18 @@ public class DFSCliente {
     public void createCacheOrIgnore(String nom, String modo)
             throws RemoteException, IOException {
 
-        DFSFicheroServ dfsFicheroServ =
-                this.dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
+        FicheroInfo ficheroInfo =
+                this.dfsServicio.getOrCreateFicheroInfo(nom, modo);
 
         // Cache available
         if(caches.containsKey(nom)){
             System.out.println("Cache ya existente para "+nom);
             Cache cache = caches.get(nom);
-            FicheroInfo ficheroInfo = new FicheroInfo(dfsFicheroServ, )
+            if (cache.obtenerFecha() < ficheroInfo.getLastModification()){
+                System.out.println("Cache desfasada -> Invalidando");
+                cache.vaciar();
+                cache.vaciarListaMod();
+            }
             return;
         }
 
@@ -66,14 +70,26 @@ public class DFSCliente {
         }
         return cache.getBloque(pos) != null;
     }
-
+    public boolean isCacheValid(String nom, long lastMod){
+        Cache cache = caches.get(nom);
+        if (cache == null){
+            return false;
+        }
+        if (cache.obtenerFecha() < lastMod){
+            System.out.println("Cache desfasada -> Invalidando");
+            cache.vaciar();
+            cache.vaciarListaMod();
+            return false;
+        }
+        return true;
+    }
     public byte[] getFromCache(String nom, long pos) {
         if (!isInCache(nom, pos)) {
             System.out.println("Cache no contiene " + nom + " pos="+pos);
             return null;
         }
 
-        System.out.print("Cache contiene " + nom + " pos="+pos);
+        System.out.println("Cache contiene " + nom + " pos="+pos);
         Cache cache = caches.get(nom);
         Bloque bloque = cache.getBloque(pos);
         return bloque.obtenerContenido();

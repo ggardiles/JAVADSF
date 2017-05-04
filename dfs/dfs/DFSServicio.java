@@ -6,10 +6,7 @@ import java.rmi.*;
 
 public interface DFSServicio extends Remote {
 
-    FicheroInfo generarFichero(String nom, String modo)
-            throws RemoteException, IOException;
-
-    DFSFicheroServ getOrCreateDSFFicheroServ(String nom, String modo)
+    FicheroInfo getOrCreateFicheroInfo(String nom, String modo)
             throws RemoteException, IOException;
 
     void removeFromHashmap(String nom) throws RemoteException;

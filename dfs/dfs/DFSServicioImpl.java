@@ -8,34 +8,29 @@ import java.rmi.server.*;
 import java.util.HashMap;
 
 public class DFSServicioImpl extends UnicastRemoteObject implements DFSServicio {
-    private HashMap<String, DFSFicheroServ> ficheroServHashMap;
+    private HashMap<String, FicheroInfo> ficheroInfoHashMap;
 
     public DFSServicioImpl() throws RemoteException {
-        this.ficheroServHashMap = new HashMap<String, DFSFicheroServ>();
+        this.ficheroInfoHashMap = new HashMap<String, FicheroInfo>();
     }
 
-    public FicheroInfo generarFichero(String nom, String modo)
+    public FicheroInfo getOrCreateFicheroInfo(String nom, String modo)
             throws RemoteException, IOException {
-
-        DFSFicheroServ dfsFicheroServ = getOrCreateDSFFicheroServ(nom, modo);
-
-        return null;
-    }
-
-    public DFSFicheroServ getOrCreateDSFFicheroServ(String nom, String modo)
-            throws RemoteException, IOException {
-        if(ficheroServHashMap.containsKey(nom+modo)){
-            System.out.println("DFSServicioImpl: already opened DSFFicheroServ");
-            return ficheroServHashMap.get(nom+modo);
+        /*
+        if(ficheroInfoHashMap.containsKey(nom+modo)){
+            System.out.println("DFSServicioImpl: already opened FicheroInfo");
+            return ficheroInfoHashMap.get(nom+modo);
         }
-        System.out.println("DFSServicioImpl: Creating new DSFFicheroServ");
+        */
+        System.out.println("DFSServicioImpl: Creating new FicheroInfo");
         DFSFicheroServ dfsFicheroServ = new DFSFicheroServImpl(nom, modo);
-        ficheroServHashMap.put(nom+modo, dfsFicheroServ);
-        return dfsFicheroServ;
+        FicheroInfo ficheroInfo = new FicheroInfo(dfsFicheroServ, System.currentTimeMillis(), true);
+        ficheroInfoHashMap.put(nom+modo, ficheroInfo);
+        return ficheroInfo;
     }
 
     public void removeFromHashmap(String nom) throws RemoteException{
-        this.ficheroServHashMap.remove(nom);
+        this.ficheroInfoHashMap.remove(nom);
     }
 
 }
