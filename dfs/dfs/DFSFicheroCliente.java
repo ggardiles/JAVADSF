@@ -80,7 +80,6 @@ public class DFSFicheroCliente  {
             throw new IOException("The file has not been opened");
         }
         dfsFicheroServ.close();
-        dfsServicio.removeFromHashmap(nom);
         setOpen(false);
         System.out.println("CLOSE: File Closed");
     }

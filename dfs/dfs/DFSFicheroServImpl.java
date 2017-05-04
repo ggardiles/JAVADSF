@@ -17,6 +17,7 @@ public class DFSFicheroServImpl extends UnicastRemoteObject implements DFSFicher
         // Opening File
         File file = new File(DFSDir + nom);
         if (file.exists()) {
+            System.out.println("DFSFicheroServImpl: already exists " + nom +" opening");
             this.file = file;
             this.randomAccessFile = new RandomAccessFile(file, "rw");
             return;
@@ -29,6 +30,7 @@ public class DFSFicheroServImpl extends UnicastRemoteObject implements DFSFicher
         if (!file.createNewFile()){ // Si escritura -> crearlo
             throw new IOException("Could not create file");
         }
+        System.out.println("DFSFicheroServImpl: created file " + nom);
         this.file = file;
         this.randomAccessFile = new RandomAccessFile(file, "rw");
     }
@@ -37,7 +39,7 @@ public class DFSFicheroServImpl extends UnicastRemoteObject implements DFSFicher
     public byte[] read(byte[] b, long pos) throws IOException, RemoteException {
         seek(pos);
         int nleidos = randomAccessFile.read(b);
-        System.out.println("Bytes leidos: " + nleidos);
+        System.out.println("READ: Bytes leidos: " + nleidos + " pos="+pos);
         return nleidos > 0 ? b:null;
     }
 
@@ -45,18 +47,19 @@ public class DFSFicheroServImpl extends UnicastRemoteObject implements DFSFicher
     public void write(byte[] b, long pos) throws IOException, RemoteException {
         seek(pos);
         randomAccessFile.write(b);
-        System.out.println("Bytes Escritos: " + b.length);
+        System.out.println("WRITE: Bytes Escritos: " + b.length+ " pos="+pos);
     }
 
     @Override
     public void seek(long p) throws RemoteException, IOException {
         randomAccessFile.seek(p);
-        System.out.println("Nueva Posicion: " + p);
+        System.out.println("SEEK: Nueva Posicion: " + p);
     }
 
     @Override
     public void close() throws IOException, RemoteException {
         randomAccessFile.close();
+        System.out.println("CLOSE: Fichero Cerrado");
     }
 
     @Override
