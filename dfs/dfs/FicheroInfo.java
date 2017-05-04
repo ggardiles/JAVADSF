@@ -7,4 +7,25 @@ package dfs;
 import java.io.*;
 
 public class FicheroInfo implements Serializable {
+    private DFSFicheroServ dsfFicheroServ;
+    private long lastMod;
+    private boolean isCachePerm;
+    
+    public FicheroInfo(DFSFicheroServ dsfFicheroServ, long lastMod, boolean isCachePerm) {
+        this.dsfFicheroServ = dsfFicheroServ;
+        this.lastMod = lastMod;
+        this.isCachePerm = isCachePerm;
+    }
+
+    public DFSFicheroServ getDfsFile() {
+        return dsfFicheroServ;
+    }
+
+    public long getLastModification() {
+        return lastMod;
+    }
+
+    public boolean isCacheAllowed(){
+        return isCachePerm;
+    }
 }

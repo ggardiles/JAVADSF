@@ -42,9 +42,14 @@ public class DFSCliente {
     public void createCacheOrIgnore(String nom, String modo)
             throws RemoteException, IOException {
 
+        DFSFicheroServ dfsFicheroServ =
+                this.dfsServicio.getOrCreateDSFFicheroServ(nom, modo);
+
         // Cache available
         if(caches.containsKey(nom)){
             System.out.println("Cache ya existente para "+nom);
+            Cache cache = caches.get(nom);
+            FicheroInfo ficheroInfo = new FicheroInfo(dfsFicheroServ, )
             return;
         }
 
@@ -86,29 +91,29 @@ public class DFSCliente {
 
         Bloque savedBloque = cache.putBloque(bloque);
         List<Bloque> bloqueList = new ArrayList<Bloque>();
-        /* Posible implementación siguiente parte
-        while (savedBloque!=null && cache.preguntarYDesactivarMod(savedBloque)){
+
+        while (savedBloque != null
+                && cache.preguntarYDesactivarMod(savedBloque)){
             bloqueList.add(savedBloque);
             savedBloque= cache.putBloque(savedBloque);
         }
-        */
+
         return bloqueList;
 
     }
+
     public List<Bloque> removeAllModified(String nom) {
-        int indice = idCaches.indexOf(nom);
-        Cache cache = caches.get(indice);
+        Cache cache = caches.get(nom);
         List<Bloque> bloqueList = new ArrayList<Bloque>(cache.listaMod());
         cache.vaciarListaMod();
-        System.out.println("Devolviendo "+bloqueList.size()+" elemento modificados");
+        System.out.println("Elementos modificados: "+bloqueList.size());
         return bloqueList;
     }
 
     public void updateCacheDate(String nom, long ultimaModificacion) {
-        int indice = idCaches.indexOf(nom);
-        Cache cache = caches.get(indice);
+        Cache cache = caches.get(nom);
         cache.fijarFecha(ultimaModificacion);
-        System.out.println("Fecha de cache actualizada a: "+cache.obtenerFecha()+" del fichero: "+nom);
+        System.out.println("Nueva fecha cache " + cache.obtenerFecha()+" del fichero: "+nom);
     }
 
     public int getTamBloque() throws RemoteException{

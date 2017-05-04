@@ -4,6 +4,7 @@ package dfs;
 
 import java.io.*;
 import java.rmi.*;
+import java.util.List;
 
 
 public class DFSFicheroCliente  {
@@ -41,11 +42,15 @@ public class DFSFicheroCliente  {
         for (int i = 0; i * tamBloque < b.length; i++) {
             byte[] cacheRead = new byte[tamBloque];
 
-            if (dfsCliente.isInCache(nom, pos)){
-                cacheRead = dfsCliente.getFromCache(nom, pos);
-            }else{
+            if (dfsCliente.isInCache(nom, tamBloque * i)){ // En cache
+                cacheRead = dfsCliente.getFromCache(nom, tamBloque * i);
+            }else{ // No en cache -> Leer de fichero y guardar en cache
                 cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
-                dfsCliente.saveInCache(nom, pos, cacheRead,false);
+                List<Bloque> bloquesPendientes =
+                        dfsCliente.saveInCache(nom, tamBloque * i, cacheRead, false);
+                for(Bloque bloque: bloquesPendientes){
+                    dfsFicheroServ.write(bloque.obtenerContenido(), bloque.obtenerId());
+                }
             }
 
             if(cacheRead == null) { // EOF
@@ -59,6 +64,8 @@ public class DFSFicheroCliente  {
         System.out.println("READ: Bytes leidos: "+nleidos+ " pos="+pos);
         return (nleidos>0)?nleidos:-1;
     }
+
+
     public void write(byte[] b) throws RemoteException, IOException {
         if(!this.isOpen || !modo.equals("rw")){
             throw new IOException("File not opened or incorrect mode");
@@ -68,7 +75,13 @@ public class DFSFicheroCliente  {
         
         for(int i = 0 ; i * tamBloque < b.length; i++){
             byte[] buffer = new byte[tamBloque];
-            dfsFicheroServ.write(b, pos);
+            System.arraycopy(b, tamBloque * i , buffer, 0, tamBloque);
+            List<Bloque> bloquesPendientes =
+                    dfsCliente.saveInCache(nom, tamBloque * i, buffer, true);
+            for(Bloque bloque: bloquesPendientes){
+                dfsFicheroServ.write(bloque.obtenerContenido(), bloque.obtenerId());
+            }
+            //dfsFicheroServ.write(b, pos);
         }
         pos += b.length;
         System.out.println("WRITE: Bytes escritos: "+b.length+ " pos="+pos);
@@ -88,9 +101,14 @@ public class DFSFicheroCliente  {
         if(!this.isOpen) {
             throw new IOException("The file has not been opened");
         }
+        List<Bloque> modified = dfsCliente.removeAllModified(nom);
+        for(Bloque bloque : modified){
+            dfsFicheroServ.write(bloque.obtenerContenido(),bloque.obtenerId());
+        }
         dfsServicio.removeFromHashmap(nom+modo);
         dfsFicheroServ.close();
         setOpen(false);
+        dfsCliente.updateCacheDate(nom, dfsFicheroServ.getLastModDate());
         System.out.println("CLOSE: DFSFicheroServ Closed");
     }
 
