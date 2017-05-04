@@ -79,9 +79,10 @@ public class DFSFicheroCliente  {
         if(!this.isOpen) {
             throw new IOException("The file has not been opened");
         }
+        dfsServicio.removeFromHashmap(nom+modo);
         dfsFicheroServ.close();
         setOpen(false);
-        System.out.println("CLOSE: File Closed");
+        System.out.println("CLOSE: DFSFicheroServ Closed");
     }
 
     private boolean isOpen() {

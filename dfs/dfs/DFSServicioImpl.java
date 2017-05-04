@@ -24,13 +24,13 @@ public class DFSServicioImpl extends UnicastRemoteObject implements DFSServicio 
 
     public DFSFicheroServ getOrCreateDSFFicheroServ(String nom, String modo)
             throws RemoteException, IOException {
-        if(ficheroServHashMap.containsKey(nom)){
+        if(ficheroServHashMap.containsKey(nom+modo)){
             System.out.println("DFSServicioImpl: already opened DSFFicheroServ");
-            return ficheroServHashMap.get(nom);
+            return ficheroServHashMap.get(nom+modo);
         }
         System.out.println("DFSServicioImpl: Creating new DSFFicheroServ");
         DFSFicheroServ dfsFicheroServ = new DFSFicheroServImpl(nom, modo);
-        ficheroServHashMap.put(nom, dfsFicheroServ);
+        ficheroServHashMap.put(nom+modo, dfsFicheroServ);
         return dfsFicheroServ;
     }
 
