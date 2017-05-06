@@ -46,14 +46,18 @@ public class DFSFicheroCliente  {
         for (int i = 0; i * tamBloque < b.length; i++) {
             byte[] cacheRead = new byte[tamBloque];
 
-            if (dfsCliente.isInCache(nom, tamBloque * i)){ // En cache
+            if (dfsCliente.isInCache(nom, pos +tamBloque * i)){ // En cache
                 System.out.println("FICHERO CLIENTE: Getting from cache pos="+tamBloque*i);
                 cacheRead = dfsCliente.getFromCache(nom, tamBloque * i);
             }else{ // No en cache -> Leer de fichero y guardar en cache
                 System.out.println("FICHERO CLIENTE: Getting from FILE pos="+tamBloque*i);
-                cacheRead = this.dfsFicheroServ.read(cacheRead, tamBloque*i);
+                cacheRead = this.dfsFicheroServ.read(cacheRead, pos+tamBloque*i);
+                if(cacheRead == null) { // EOF
+                    System.out.println("READ EOF");
+                    break;
+                }
                 Bloque bloquePendiente =
-                        dfsCliente.saveInCache(nom, tamBloque * i, cacheRead, false);
+                        dfsCliente.saveInCache(nom, pos+tamBloque * i, cacheRead, false);
 
                 // Si hay bloques modificados hay que lelvarlos a fichero
                 if (bloquePendiente != null){
@@ -61,10 +65,6 @@ public class DFSFicheroCliente  {
                 }
             }
 
-            if(cacheRead == null) { // EOF
-                System.out.println("READ EOF");
-                break;
-            }
             nleidos += tamBloque;
             System.arraycopy(cacheRead, 0, b, tamBloque * i, cacheRead.length);
         }
