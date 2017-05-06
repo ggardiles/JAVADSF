@@ -95,26 +95,32 @@ public class DFSCliente {
         return bloque.obtenerContenido();
     }
 
-    public List<Bloque> saveInCache (String nom, long pos, byte[] b, boolean mod){
+    public Bloque saveInCache (String nom, long pos, byte[] b, boolean mod){
         System.out.println("SAVE in cache "+nom+" bloque="+pos+" mod="+((mod)?"true":"false"));
 
-
         Cache cache = caches.get(nom);
-        Bloque bloque = new Bloque(pos,b);
+        Bloque bloqueToAdd = new Bloque(pos,b);
         if (mod){
-            cache.activarMod(bloque);
+            cache.activarMod(bloqueToAdd);
         }
 
-        Bloque savedBloque = cache.putBloque(bloque);
-        List<Bloque> bloqueList = new ArrayList<Bloque>();
+        Bloque bloqueToBeRemoved = cache.getBloque(bloqueToAdd.obtenerId());
 
-        while (savedBloque != null
-                && cache.preguntarYDesactivarMod(savedBloque)){
-            bloqueList.add(savedBloque);
-            savedBloque= cache.putBloque(savedBloque);
+        // No hay bloque guardado
+        if (bloqueToBeRemoved == null){
+            cache.putBloque(bloqueToAdd);
+            return null;
+        }
+        // Bloque a sustituir modificado -> hay que guardarlo a fichero
+        if (cache.preguntarMod(bloqueToBeRemoved)){
+            cache.desactivarMod(bloqueToBeRemoved); // Quitar viejo de la lista de modificados
+            cache.putBloque(bloqueToAdd); // Añadir nueva
+            return bloqueToBeRemoved;
         }
 
-        return bloqueList;
+        // Bloque a sustituir no modificado
+        cache.putBloque(bloqueToAdd);
+        return null;
 
     }
 
