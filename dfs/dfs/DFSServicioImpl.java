@@ -24,7 +24,7 @@ public class DFSServicioImpl extends UnicastRemoteObject implements DFSServicio 
         */
         System.out.println("DFSServicioImpl: Creating new FicheroInfo");
         DFSFicheroServ dfsFicheroServ = new DFSFicheroServImpl(nom, modo);
-        FicheroInfo ficheroInfo = new FicheroInfo(dfsFicheroServ, System.currentTimeMillis(), true);
+        FicheroInfo ficheroInfo = new FicheroInfo(dfsFicheroServ, dfsFicheroServ.getLastModDate(), true);
         ficheroInfoHashMap.put(nom+modo, ficheroInfo);
         return ficheroInfo;
     }

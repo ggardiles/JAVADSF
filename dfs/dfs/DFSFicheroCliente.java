@@ -32,6 +32,8 @@ public class DFSFicheroCliente  {
         this.dfsServicio = dfsCliente.getDfsServicio();
         this.ficheroInfo = this.dfsServicio.getOrCreateFicheroInfo(nom, modo);
         this.dfsFicheroServ = this.ficheroInfo.getDfsFile();
+
+        dfsCliente.invalidateCacheIfInvalid(nom, this.ficheroInfo.getLastModification());
     }
     public int read(byte[] b) throws RemoteException, IOException {
         if(!isOpen()) {
@@ -44,8 +46,7 @@ public class DFSFicheroCliente  {
         for (int i = 0; i * tamBloque < b.length; i++) {
             byte[] cacheRead = new byte[tamBloque];
 
-            if (dfsCliente.isInCache(nom, tamBloque * i)
-                    && dfsCliente.isCacheValid(nom, ficheroInfo.getLastModification())){ // En cache
+            if (dfsCliente.isInCache(nom, tamBloque * i)){ // En cache
                 System.out.println("FICHERO CLIENTE: Getting from cache pos="+tamBloque*i);
                 cacheRead = dfsCliente.getFromCache(nom, tamBloque * i);
             }else{ // No en cache -> Leer de fichero y guardar en cache
@@ -111,11 +112,12 @@ public class DFSFicheroCliente  {
         List<Bloque> modified = dfsCliente.removeAllModified(nom);
         for(Bloque bloque : modified){
             dfsFicheroServ.write(bloque.obtenerContenido(),bloque.obtenerId());
+            System.out.println("CLOSE: Escrito a fichero bloque en pos="+bloque.obtenerId());
         }
         dfsServicio.removeFromHashmap(nom+modo);
+        dfsCliente.updateCacheDate(nom, dfsFicheroServ.getLastModDate());
         dfsFicheroServ.close();
         setOpen(false);
-        dfsCliente.updateCacheDate(nom, dfsFicheroServ.getLastModDate());
         System.out.println("CLOSE: DFSFicheroServ Closed");
     }
 

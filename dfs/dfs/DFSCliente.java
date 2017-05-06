@@ -48,12 +48,6 @@ public class DFSCliente {
         // Cache available
         if(caches.containsKey(nom)){
             System.out.println("Cache ya existente para "+nom);
-            Cache cache = caches.get(nom);
-            if (cache.obtenerFecha() < ficheroInfo.getLastModification()){
-                System.out.println("Cache desfasada -> Invalidando");
-                cache.vaciar();
-                cache.vaciarListaMod();
-            }
             return;
         }
 
@@ -70,18 +64,17 @@ public class DFSCliente {
         }
         return cache.getBloque(pos) != null;
     }
-    public boolean isCacheValid(String nom, long lastMod){
+    public void invalidateCacheIfInvalid(String nom, long lastMod){
         Cache cache = caches.get(nom);
         if (cache == null){
-            return false;
+            return;
         }
         if (cache.obtenerFecha() < lastMod){
             System.out.println("Cache desfasada -> Invalidando");
             cache.vaciar();
             cache.vaciarListaMod();
-            return false;
+            return;
         }
-        return true;
     }
     public byte[] getFromCache(String nom, long pos) {
         if (!isInCache(nom, pos)) {
@@ -100,33 +93,38 @@ public class DFSCliente {
 
         Cache cache = caches.get(nom);
         Bloque bloqueToAdd = new Bloque(pos,b);
-        if (mod){
-            cache.activarMod(bloqueToAdd);
-        }
-
         Bloque bloqueToBeRemoved = cache.getBloque(bloqueToAdd.obtenerId());
 
         // No hay bloque guardado
         if (bloqueToBeRemoved == null){
             cache.putBloque(bloqueToAdd);
+            if (mod){
+                cache.activarMod(bloqueToAdd);
+            }
             return null;
         }
         // Bloque a sustituir modificado -> hay que guardarlo a fichero
         if (cache.preguntarMod(bloqueToBeRemoved)){
             cache.desactivarMod(bloqueToBeRemoved); // Quitar viejo de la lista de modificados
             cache.putBloque(bloqueToAdd); // Añadir nueva
+            if (mod){
+                cache.activarMod(bloqueToAdd);
+            }
             return bloqueToBeRemoved;
         }
 
         // Bloque a sustituir no modificado
         cache.putBloque(bloqueToAdd);
+        if (mod){
+            cache.activarMod(bloqueToAdd);
+        }
         return null;
 
     }
 
     public List<Bloque> removeAllModified(String nom) {
         Cache cache = caches.get(nom);
-        List<Bloque> bloqueList = new ArrayList<Bloque>(cache.listaMod());
+        List<Bloque> bloqueList = cache.listaMod();
         cache.vaciarListaMod();
         System.out.println("Elementos modificados: "+bloqueList.size());
         return bloqueList;
